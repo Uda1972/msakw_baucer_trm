@@ -1,0 +1,162 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card bg-dark">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-file-alt me-2"></i>Butiran Permohonan
+                </h4>
+                <a href="{{ url_for('view_applications') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Kembali ke Senarai
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="application-header">
+                    <h3>{{ application.full_name }}</h3>
+                    <div class="d-flex flex-wrap gap-3 align-items-center">
+                        <span class="badge bg-primary">{{ application.assistance_type }}</span>
+                        
+                        {% if application.status == 'Approved' %}
+                            <span class="badge bg-success">Approved</span>
+                        {% elif application.status == 'Rejected' %}
+                            <span class="badge bg-danger">Rejected</span>
+                        {% else %}
+                            <span class="badge bg-warning">Processing</span>
+                        {% endif %}
+                        
+                        <span class="text-muted">ID Permohonan: {{ application.id }}</span>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Maklumat Peribadi</h5>
+                        <div class="application-info-row">
+                            <div class="application-label">Nama Penuh:</div>
+                            <div>{{ application.full_name }}</div>
+                        </div>
+                        <div class="application-info-row">
+                            <div class="application-label">NRIC:</div>
+                            <div>{{ application.nric }}</div>
+                        </div>
+                        <div class="application-info-row">
+                            <div class="application-label">No Telefon:</div>
+                            <div>{{ application.phone }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5>Maklumat Permohonan</h5>
+                        <div class="application-info-row">
+                            <div class="application-label">Jenis Bantuan:</div>
+                            <div>
+                                {{ application.assistance_type }}
+                                {% if application.assistance_type == 'Baucer' %}
+                                    <small class="text-muted">(tempoh pelepasan 3 bulan)</small>
+                                {% else %}
+                                    <small class="text-muted">(tempoh pelepasan 6 bulan)</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="application-info-row">
+                            <div class="application-label">Tarikh Permohonan:</div>
+                            <div>{{ application.application_date|format_date }}</div>
+                        </div>
+                        <div class="application-info-row">
+                            <div class="application-label">Status:</div>
+                            <div class="status-indicator">{{ application.status }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if application.status == 'Approved' %}
+                    <div class="bg-dark-subtle p-3 rounded mb-4">
+                        <h5>Maklumat Kelulusan</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="application-info-row">
+                                    <div class="application-label">Tarikh Kelulusan:</div>
+                                    <div>{{ application.approval_date|format_date }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="application-info-row">
+                                    <div class="application-label">Tamat Tempoh Pelepasan:</div>
+                                    <div>{{ application.grace_period_end|format_date }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if application.grace_period_end %}
+                            {% set today = now().date() %}
+                            {% set approval = application.approval_date.date() %}
+                            {% set end_date = application.grace_period_end.date() %}
+                            {% set total_days = (end_date - approval).days %}
+                            {% set elapsed_days = (today - approval).days %}
+                            {% if total_days > 0 %}
+                                {% set percentage = (elapsed_days / total_days * 100)|int %}
+                            {% else %}
+                                {% set percentage = 0 %}
+                            {% endif %}
+                            {% if percentage < 0 %}{% set percentage = 0 %}{% endif %}
+                            {% if percentage > 100 %}{% set percentage = 100 %}{% endif %}
+                            
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small>Tarikh Kelulusan</small>
+                                    <small>Tamat Tempoh Pelepasan</small>
+                                </div>
+                                <div class="grace-period-bar">
+                                    <div class="grace-period-progress" style="width: {{ percentage }}%"></div>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <small>{{ application.approval_date|format_date }}</small>
+                                    <small>{{ application.grace_period_end|format_date }}</small>
+                                </div>
+                                <div class="text-center mt-2">
+                                    {% if percentage < 100 %}
+                                        <small class="text-muted">
+                                            {{ total_days - elapsed_days }} hari lagi ({{ 100 - percentage }}%)
+                                        </small>
+                                    {% else %}
+                                        <small class="text-danger">Tempoh pelepasan telah tamat</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                <!-- Status Change Form -->
+                <form method="POST" action="{{ url_for('change_status', app_id=application.id) }}" class="mt-4">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-8">
+                            <label for="status" class="form-label">Tukar Status Permohonan</label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="Processing" {% if application.status == 'Processing' %}selected{% endif %}>
+                                    Dalam Proses
+                                </option>
+                                <option value="Approved" {% if application.status == 'Approved' %}selected{% endif %}>
+                                    Diluluskan
+                                </option>
+                                <option value="Rejected" {% if application.status == 'Rejected' %}selected{% endif %}>
+                                    Ditolak
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary w-100">Kemaskini Status</button>
+                        </div>
+                    </div>
+                    <div class="form-text">
+                        Nota: Menukar status kepada "Diluluskan" akan secara automatik mengira tempoh pelepasan 
+                        berdasarkan jenis bantuan.
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+[build]
+  command = "pip install -e ."
+  publish = "."
+
+[build.environment]
+  PYTHON_VERSION = "3.11"
+
+# Redirect all requests to the Flask app
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/app"
+  status = 200
+
+# Define the serverless function that will run the Flask app
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Setup for the dev server
+[dev]
+  command = "gunicorn --bind 0.0.0.0:8888 main:app"
+  port = 8888
+  publish = "."
