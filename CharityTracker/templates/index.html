@@ -1,0 +1,138 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card bg-dark mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-file-alt me-2"></i>Borang Permohonan Bantuan
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('submit_application') }}">
+                    {{ form.csrf_token }}
+                    
+                    <div class="mb-3">
+                        {{ form.full_name.label(class="form-label") }}
+                        {{ form.full_name(class="form-control", placeholder="Enter full name") }}
+                        <div class="form-text">Example: Ahmad bin Abdullah</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.nric.label(class="form-label") }}
+                        {{ form.nric(class="form-control", placeholder="XXXXXX-XX-XXXX") }}
+                        <div class="form-text">Format: 123456-78-9012</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.phone.label(class="form-label") }}
+                        {{ form.phone(class="form-control", placeholder="Enter phone number") }}
+                        <div class="form-text">Example: 0123456789</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.assistance_type.label(class="form-label") }}
+                        {{ form.assistance_type(class="form-select") }}
+                        <div class="form-text">
+                            Baucer: 3 months grace period | TRM: 6 months grace period
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.application_date.label(class="form-label") }}
+                        {{ form.application_date(class="form-control", type="date") }}
+                        <div class="form-text">Application submission date</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card bg-dark">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clock me-2"></i>Permohonan Terkini
+                </h5>
+                <a href="{{ url_for('view_applications') }}" class="btn btn-sm btn-outline-primary">
+                    Lihat Semua
+                </a>
+            </div>
+            <div class="card-body">
+                {% if applications %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nama</th>
+                                    <th>Jenis</th>
+                                    <th>Status</th>
+                                    <th>Tarikh</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in applications %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('view_application', app_id=app.id) }}">
+                                            {{ app.full_name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ app.assistance_type }}</td>
+                                    <td class="status-indicator">{{ app.status }}</td>
+                                    <td>{{ app.application_date|format_date }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        Tiada permohonan telah diserahkan lagi.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Information Card -->
+        <div class="card bg-dark mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Maklumat Bantuan
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card bg-secondary mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Baucer</h5>
+                                <p class="card-text">Tempoh: <strong>3 bulan</strong> selepas kelulusan</p>
+                                <p class="card-text mb-0">
+                                    <small>Sesuai untuk keperluan bantuan jangka pendek</small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-secondary">
+                            <div class="card-body">
+                                <h5 class="card-title">Tabung Rahmah Madani (TRM)</h5>
+                                <p class="card-text">Tempoh: <strong>6 bulan</strong> selepas kelulusan</p>
+                                <p class="card-text mb-0">
+                                    <small>Sesuai untuk keperluan bantuan jangka panjang</small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: masjid-saidina-ali-assistance
+    env: python
+    buildCommand: pip install -e .
+    startCommand: ./deployment_start.sh
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.5
+      - key: PORT
+        value: 10000
+      - key: DATABASE_PATH
+        value: /var/lib/app.db
+      - key: SESSION_SECRET
+        generateValue: true
+    plan: free
+    healthCheckPath: /
+    # This will auto-stop the service after 15 minutes of inactivity
+    # to stay within free tier limits
+    autoDeploy: true

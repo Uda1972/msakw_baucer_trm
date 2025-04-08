@@ -1,0 +1,121 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card bg-dark">
+    <div class="card-header">
+        <h4 class="card-title mb-0">
+            <i class="fas fa-list me-2"></i>Senarai Permohonan
+        </h4>
+    </div>
+    <div class="card-body">
+        <!-- Search and Filter Options -->
+        <form id="search-form" action="{{ url_for('view_applications') }}" method="GET" class="mb-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Carian</label>
+                    <input type="text" class="form-control" id="search-input" name="search" 
+                           placeholder="Cari dengan nama, NRIC atau telefon" value="{{ current_search }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="status-filter" class="form-label">Status</label>
+                    <select class="form-select" id="status-filter" name="status">
+                        <option value="" {% if not current_status %}selected{% endif %}>Semua Status</option>
+                        <option value="Approved" {% if current_status == 'Approved' %}selected{% endif %}>Diluluskan</option>
+                        <option value="Rejected" {% if current_status == 'Rejected' %}selected{% endif %}>Ditolak</option>
+                        <option value="Processing" {% if current_status == 'Processing' %}selected{% endif %}>Diproses</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="type-filter" class="form-label">Jenis</label>
+                    <select class="form-select" id="type-filter" name="type">
+                        <option value="" {% if not current_type %}selected{% endif %}>Semua Jenis</option>
+                        <option value="Baucer" {% if current_type == 'Baucer' %}selected{% endif %}>Baucer (3 bulan)</option>
+                        <option value="TRM" {% if current_type == 'TRM' %}selected{% endif %}>TRM (6 bulan)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Tapis</button>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Applications Table -->
+        {% if applications %}
+            <div class="table-responsive">
+                <table id="applications-table" class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th data-sort>ID</th>
+                            <th data-sort>Nama Penuh</th>
+                            <th data-sort>No. NRIC</th>
+                            <th data-sort>No. Telefon</th>
+                            <th data-sort>Jenis Bantuan</th>
+                            <th data-sort>Tarikh Permohonan</th>
+                            <th data-sort>Status</th>
+                            <th data-sort>Tamat Tempoh</th>
+                            <th>Tindakan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in applications %}
+                        <tr>
+                            <td>{{ app.id }}</td>
+                            <td data-field="name">{{ app.full_name }}</td>
+                            <td data-field="nric">{{ app.nric }}</td>
+                            <td data-field="phone">{{ app.phone }}</td>
+                            <td data-field="type">{{ app.assistance_type }}</td>
+                            <td>{{ app.application_date|format_date }}</td>
+                            <td data-field="status" class="status-indicator">{{ app.status }}</td>
+                            <td>
+                                {% if app.grace_period_end %}
+                                    {{ app.grace_period_end|format_date }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('view_application', app_id=app.id) }}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i> Lihat
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-3">
+                <p>Menunjukkan {{ applications|length }} permohonan</p>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>Tiada permohonan ditemui yang sepadan dengan kriteria anda.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Add specific JavaScript for this page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize filter functionality
+        const searchInput = document.getElementById('search-input');
+        const statusFilter = document.getElementById('status-filter');
+        const typeFilter = document.getElementById('type-filter');
+        
+        // Add event listeners for client-side filtering
+        if (searchInput) {
+            searchInput.addEventListener('input', filterTable);
+        }
+        if (statusFilter) {
+            statusFilter.addEventListener('change', filterTable);
+        }
+        if (typeFilter) {
+            typeFilter.addEventListener('change', filterTable);
+        }
+    });
+</script>
+{% endblock %}
